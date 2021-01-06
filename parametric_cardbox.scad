@@ -1,4 +1,3 @@
-use <./DominionSymbols.otf>
 use <./OptimusPrinceps.ttf>
 use <./OptimusPrincepsSemiBold.ttf>
 use <./EPISODE1.ttf>
@@ -8,7 +7,10 @@ outerWallThickness = 1.5;
 lidThickness = 4;
 
 cardOrSleeveWidth = 60;
-cardOrSleeveHeight = 96;
+
+cardOrSleeveHeight = 94;
+cardExtraHeight = 2;
+slotVerticalSpace = cardOrSleeveHeight + cardExtraHeight;
 slotExtraWidth = 2;
 slotSpacerDepth = 15;
 
@@ -19,7 +21,7 @@ dividerCardOverlap = 3;
 slotWidth = cardOrSleeveWidth+slotExtraWidth;
 innerWidth = slotWidth+slotSpacerDepth;
 outerWidth = innerWidth + outerWallThickness*2;
-upperHeight = cardOrSleeveHeight-dividerHeight;
+upperHeight = slotVerticalSpace-dividerHeight;
 cutoutWidth = innerWidth-2*slotSpacerDepth-slotExtraWidth-dividerCardOverlap;
 
 cardThickness = 0.3;
@@ -41,11 +43,35 @@ textTopOffset = 5;
 cardTextWidth = 4.5;
 lidTextDepth = 1.2;
 
+//Width of the top shelf
+topWidth = 20;//12;    
+//How far the top taper overlaps with the box side
+topOverlap = 20;
 
-lidOnTop = false;
-lidOnSide = true;
+clipWidth = 12;//12;
+clipThickness = 2;
+clipDepth = 15;//8;
+clipExtends = 3;
+clipShelf = 2;
+clipHoleExtraVert = 8;
+clipHoleExtraHoriz = clipShelf+1;
+clipOffsetHoriz = clipShelf+1;
+
+//Clip size constrains to ensure so it will intersect the lid support
+//Just uses similar triangle proportions
+minClipHoleOffset = clipDepth/(upperHeight+topOverlap)*topWidth;
+maxClipDepth = (topWidth-1.2)/topWidth*(upperHeight+topOverlap);
+
+contrainedClipHoleOffset = (minClipHoleOffset <= topWidth-1.5) ? clipOffsetHoriz : minClipHoleOffset;
+contrainedClipDepth = (minClipHoleOffset <= topWidth-1.5) ? clipOffsetHoriz : minClipHoleOffset;
+
+
+
+lidOnTop = true;
+lidOnSide = false;
 lidDeconstructed = false;
 makeSideLabels = false;
+genLidText = false;
 
 lidText = "Base";
 lidTextHeight = 25;
@@ -57,7 +83,6 @@ cards2 = [60,40,30,12,16,24,12,12,30,10];
 titles2 = ["Copper", "Silver", "Gold", "Platinum", "Potion", "Estate", "Duchy", "Province", "Curses", "Blank"];
 cost2 = ["0", "3", "6", "9", "4", "2", "5", "8", "0"," "];
 
-//spacer(true, 10);
 
 //generate(cards, titles, 0, outerWallThickness-dividerThickness);
 generate(cards2, titles2, 0, outerWallThickness-dividerThickness);
@@ -111,10 +136,10 @@ module generate(cardArray, titleArray, i, offset, flip=false) {
         endTops(finalLength);
         
         //Generate the lid on top to verify fit
-        if (lidOnTop) translate([0,-12,dividerHeight]) lid(finalLength);
+        if (lidOnTop) translate([0,-topWidth,dividerHeight]) lid(finalLength);
         
         //Generate the lid on the floor for printing
-        if (lidOnSide) translate([outerWidth*2+5,-12,upperHeight+lidThickness-bottomThickness]) rotate([0,180,0]) lid(finalLength);
+        if (lidOnSide) translate([outerWidth*2+5,-topWidth,upperHeight+lidThickness-bottomThickness]) rotate([0,180,0]) lid(finalLength);
     }
 }
 
@@ -202,22 +227,25 @@ module spacer(back=false, numCards=10) {
         cube([slotSpacerDepth,thickness,dividerHeight]);
         
         if (back) {
+            //Middle block cutout
             translate([0,0,bottomChamferEdge+bottomChamferZ]) cube([slotSpacerDepth,thickness,dividerHeight-topChamferEdge-bottomChamferEdge-topChamferZ-bottomChamferZ]);
             
+            //Top+bottom bevels
             translate([slotSpacerDepth-bottomCfrX,0,bottomChamferEdge+bottomChamferZ]) rotate([180,0,90]) tPrism(thickness, bottomCfrX, bottomChamferZ);
             translate([slotSpacerDepth,0,dividerHeight-topChamferEdge]) rotate([270,0,90]) tPrism(thickness, topChamferZ, topCfrX);
         } else {
+            //Middle block cutout
             translate([0,0,bottomChamferEdge+bottomChamferZ]) cube([slotSpacerDepth,thickness,dividerHeight-topChamferEdge-bottomChamferEdge-topChamferZ-bottomChamferZ]);
             
-            //translate([bottomCfrX,0,bottomChamferEdge+bottomChamferZ]) mirror([1,0,0]) rotate([180,0,90]) tPrism(thickness, bottomCfrX, bottomChamferZ);
+            //Top+bottom bevels
             translate([bottomCfrX,thickness,bottomChamferEdge+bottomChamferZ]) rotate([180,0,270]) tPrism(thickness, bottomCfrX, bottomChamferZ);
-            //translate([0,0,dividerHeight-topChamferEdge]) mirror([1,0,0]) rotate([270,0,90]) tPrism(thickness, topChamferZ, topCfrX);
             translate([0,thickness,dividerHeight-topChamferEdge]) rotate([270,0,270]) tPrism(thickness, topChamferZ, topCfrX);
         }
         
     }
 }
 
+//Generate triangular prism
 module tPrism(d, w, h){
        polyhedron(
            points=[[0,0,0], [d,0,0], [d,w,0], [0,w,0], [0,w,h], [d,w,h]],
@@ -225,54 +253,65 @@ module tPrism(d, w, h){
        );
 }
 
+//Generate the top lid supports
 module endTops(wallLength) {
-    endTopWidth = 12;
-    endTopOverlap = 20;
-    translate([0,-endTopWidth,dividerHeight-endTopOverlap]) endTopClip(wallLength, endTopWidth);
-    translate([0,wallLength+endTopWidth,dividerHeight-endTopOverlap]) mirror([0,1,0]) endTopClip(wallLength, endTopWidth);
+    //Generate tops with clip holes and move into possition
+    translate([0,-topWidth,dividerHeight-topOverlap]) endTopClip(wallLength);
+    translate([0,wallLength+topWidth,dividerHeight-topOverlap]) mirror([0,1,0]) endTopClip(wallLength);
 }
 
-module endTopClip(wallLength, finalThickness) {
+//Generate a single lid support with a clip hole
+module endTopClip(wallLength) {
+    /*
+    translate([outerWidth/2-clipWidth/2, clipOffsetHoriz, topOverlap+upperHeight+.5-clipDepth-clipExtends-clipHoleExtraVert]) clipHole();
+    */
     difference() {
-        cube([outerWidth, finalThickness, upperHeight+20]);
-        translate([outerWidth,finalThickness,0]) rotate([0,0,180]) tPrism(outerWidth,12,20+upperHeight);
-        translate([outerWidth/2-12/2, 4, 20+upperHeight-18]) clipHole();
+        cube([outerWidth, topWidth, upperHeight+topOverlap]);
+        
+        //Create taper
+        translate([outerWidth,topWidth,0]) rotate([0,0,180]) tPrism(outerWidth,topWidth,topOverlap+upperHeight);
+        
+        //Add clip hole
+        translate([outerWidth/2-clipWidth/2, clipOffsetHoriz, topOverlap+upperHeight+.5-clipDepth-clipExtends-clipHoleExtraVert]) clipHole();
         
     }
-    
-    
-    //translate([0,wallLength+outerWallThickness,dividerHeight]) cube([outerWidth, 12, cardOrSleeveHeight-dividerHeight]);
 }
 
+//Generate the geometry for the clip hole
 module clipHole() {
-    cube([12, 6.5, 18]);
-    translate([0,-10,0]) cube([12,10,9.5]);
+    cube([clipWidth, clipThickness+clipHoleExtraHoriz, clipDepth+clipExtends+clipHoleExtraVert]);
+    translate([0,-topWidth,0]) cube([clipWidth,topWidth,clipExtends+clipHoleExtraVert]);
 }
 
+//Generate the lid
 module lid(wallLength) {
+    //Gap between the lid walls/sides and the box
     gap = 0.5;
     
-    //top
+    /*
+    //top (with optional text)
     translate([0,0,upperHeight]) difference() {
-        cube([outerWidth, wallLength+12+12, lidThickness]);
-        translate([outerWidth/2,wallLength/2+12,lidThickness-lidTextDepth]) makeLidText(lidThickness, lidTextDepth);
+        cube([outerWidth, wallLength+topWidth*2, lidThickness]);
+        if (genLidText) {
+            translate([outerWidth/2,wallLength/2+topWidth,lidThickness-lidTextDepth]) makeLidText(lidThickness, lidTextDepth);
+        }
     }
+    */
     
     //sides
-    translate([0,12+gap/2,gap]) cube([outerWallThickness, wallLength-gap, upperHeight-gap]);
-    translate([outerWidth-outerWallThickness,12+gap/2,gap]) cube([outerWallThickness, wallLength-gap, upperHeight-gap]);
+    translate([0,topWidth+gap,gap]) cube([outerWallThickness, wallLength-(gap*2), upperHeight+lidThickness-gap]);
+    translate([outerWidth-outerWallThickness,topWidth+gap,gap]) cube([outerWallThickness, wallLength-(gap*2), upperHeight+lidThickness-gap]);
     
     //clips
-    translate([12+outerWidth/2-12/2,4,upperHeight-11.5]) rotate([0,0,180]) lidClip();
-    translate([outerWidth/2-12/2,wallLength+12+12-4,upperHeight-11.5]) lidClip();
+    translate([clipWidth+(outerWidth-clipWidth)/2,clipOffsetHoriz+clipThickness+.1,upperHeight-clipDepth-clipExtends]) rotate([0,0,180]) lidClip();
+    
+    //translate([(outerWidth-clipWidth)/2,wallLength+topWidth*2-outerWallThickness-clipOffsetHoriz-clipHoleExtraHoriz,upperHeight-clipDepth-clipExtends]) lidClip();
+    translate([(outerWidth-clipWidth)/2,wallLength+topWidth*2-clipOffsetHoriz-clipThickness-.1,upperHeight-clipDepth-clipExtends]) lidClip();
 }
 
 module lidClip() {
-    tabHeight = 3;
-    tabShelf = 2;
-    cube([12, 2, 11.5]);
-    //rotate([180,0,180]) tPrism(12,2,3);
-    translate([0,2+tabShelf,tabHeight]) rotate([180,0,0]) tPrism(12,tabShelf,tabHeight);
+    cube([clipWidth, clipThickness, clipDepth+clipExtends]);
+    translate([0,clipThickness+clipShelf,clipExtends]) rotate([180,0,0]) tPrism(clipWidth,clipShelf,clipExtends);
 }
 
 module makeLidText(lidThickness, depth) {
