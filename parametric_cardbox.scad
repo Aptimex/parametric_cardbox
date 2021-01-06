@@ -1,38 +1,51 @@
+use <./DominionSymbols.otf>
 use <./OptimusPrinceps.ttf>
 use <./OptimusPrincepsSemiBold.ttf>
+use <./EPISODE1.ttf>
 
 bottomThickness = 1.8;
-outerWallThickness = 3;
-wallThickness = 1.2;
-wallHeight = 70;
+outerWallThickness = 1.5;
+lidThickness = 4;
 
-//slotWidth = 64;
-slotWidth = 60;
-cardOrSleeveHeight = 100;
-slotOffset = 15;
+cardOrSleeveWidth = 60;
+cardOrSleeveHeight = 96;
+slotExtraWidth = 2;
+slotSpacerDepth = 15;
 
-innerWidth = slotWidth+slotOffset;
+dividerThickness = .8;
+dividerHeight = 70;
+dividerCardOverlap = 3;
+
+slotWidth = cardOrSleeveWidth+slotExtraWidth;
+innerWidth = slotWidth+slotSpacerDepth;
 outerWidth = innerWidth + outerWallThickness*2;
-upperHeight = cardOrSleeveHeight-wallHeight;
+upperHeight = cardOrSleeveHeight-dividerHeight;
+cutoutWidth = innerWidth-2*slotSpacerDepth-slotExtraWidth-dividerCardOverlap;
 
 cardThickness = 0.3;
 sleeveThickness = .05;
-cardAdditionalThickness = 0.1;
+cardAdditionalThickness = 0.15;
 THICK = cardThickness + sleeveThickness*2 + cardAdditionalThickness;
 
 topChamferX = 15;
 topChamferZ = 8;
 topChamferEdge = 15;
-topCfrX = (topChamferX <= slotOffset) ? topChamferX : slotOffset;
+topCfrX = (topChamferX <= slotSpacerDepth) ? topChamferX : slotSpacerDepth;
 
 bottomChamferX = 2;
 bottomChamferZ = 5;
 bottomChamferEdge = 10;
-bottomCfrX = (bottomChamferX <= slotOffset) ? bottomChamferX : slotOffset;
+bottomCfrX = (bottomChamferX <= slotSpacerDepth) ? bottomChamferX : slotSpacerDepth;
 
 textTopOffset = 5;
 cardTextWidth = 4.5;
+lidTextDepth = 1.2;
 
+
+lidOnTop = false;
+lidOnSide = true;
+lidDeconstructed = false;
+makeSideLabels = false;
 
 lidText = "Base";
 lidTextHeight = 25;
@@ -46,106 +59,168 @@ cost2 = ["0", "3", "6", "9", "4", "2", "5", "8", "0"," "];
 
 //spacer(true, 10);
 
-//generate(cards, titles, 0, outerWallThickness-wallThickness);
-generate(cards2, titles2, 0, outerWallThickness-wallThickness);
+//generate(cards, titles, 0, outerWallThickness-dividerThickness);
+generate(cards2, titles2, 0, outerWallThickness-dividerThickness);
 //translate([.3,.3,0]) slotF();
 //translate([.3,7,0]) slotB();
 
 module generate(cardArray, titleArray, i, offset, flip=false) {
+    //Space allotted all cards in this slot
     thickness = cardArray[i]*THICK;
     
+    //Iterate over the array of card numbers
     if (i < len(cardArray)) {
         
+        //Alternate generating front and back slots
         if (flip) {
             
-            //Slot
+            //Slot (back)
             translate([outerWallThickness,offset,0]) slotB(cardArray[i]);
-            //Text
-            makeText(titleArray, i, offset, thickness);
             
-            nextOffset = offset+thickness+wallThickness;
+            //Label Text
+            if (makeSideLabels) {
+                makeText(titleArray, i, offset, thickness);
+            }
+            
+            nextOffset = offset+thickness+dividerThickness;
             flip=false;
-            
             generate(cardArray, titleArray, i+1, nextOffset, flip);
         } else {
             
-            //Slot
+            //Slot (front)
             translate([outerWallThickness,offset,0]) slotF(cardArray[i]);
-            //Text
-            makeText(titleArray, i, offset, thickness);
+            
+            //Label Text
+            if (makeSideLabels) {
+                makeText(titleArray, i, offset, thickness);
+            }
             
             
-            nextOffset = offset+thickness+wallThickness;
+            nextOffset = offset+thickness+dividerThickness;
             flip=true;
-            
             generate(cardArray, titleArray, i+1, nextOffset, flip);
         }
-    } else { //finishings
-        //offset = offset + outerWallThickness
-        sides(offset);
-        endTops(offset+outerWallThickness);
-        translate([0,-12,wallHeight]) lid(offset+outerWallThickness);
+    } else { //Final touches after main storage done
+        //Account for the final wall in total length
+        finalLength = offset + outerWallThickness;
+        
+        //Generate bottom and outer side walls
+        sides(finalLength);
+        
+        //Generate end supports for the lid
+        endTops(finalLength);
+        
+        //Generate the lid on top to verify fit
+        if (lidOnTop) translate([0,-12,dividerHeight]) lid(finalLength);
+        
+        //Generate the lid on the floor for printing
+        if (lidOnSide) translate([outerWidth*2+5,-12,upperHeight+lidThickness-bottomThickness]) rotate([0,180,0]) lid(finalLength);
     }
 }
 
+//Generate all the outer sides based on the final inner length
 module sides(length=50) {
-    length = length+outerWallThickness;
-    cube([outerWallThickness,length,wallHeight]); //front
-    translate([innerWidth+outerWallThickness,0,0]) cube([outerWallThickness,length,wallHeight]); //back
+    //Front
+    cube([outerWallThickness,length,dividerHeight]);
     
-    translate([0,0,-bottomThickness]) cube([outerWidth,length,bottomThickness]); //floor
+    //Back
+    translate([innerWidth+outerWallThickness,0,0]) cube([outerWallThickness,length,dividerHeight]);
     
-    cube([outerWidth,outerWallThickness,wallHeight]); //start side
-    translate([0,length-outerWallThickness,0]) cube([outerWidth,outerWallThickness,wallHeight]); //end side
+    //Bottom
+    translate([0,0,-bottomThickness]) cube([outerWidth,length,bottomThickness]);
+    
+    //Right side
+    cube([outerWidth,outerWallThickness,dividerHeight]);
+    
+    //Left side
+    translate([0,length-outerWallThickness,0]) cube([outerWidth,outerWallThickness,dividerHeight]);
 }
 
+//Generate the side labels
 module makeText(textArray, i, offset, thickness) {
-    centerOffset = offset+cardTextWidth+wallThickness + ((thickness-cardTextWidth)/2);
+    //Calculate location of text centered on slot
+    centerOffset = offset+dividerThickness+(cardTextWidth+thickness)/2;
     
-    translate([0, centerOffset, wallHeight-textTopOffset]) rotate([0,90,180]) linear_extrude(height=1) text(textArray[i], size=cardTextWidth, font="OptimusPrincepsSemiBold");
-    //linear_extrude(height=1) text(textArray[i], size=cardTextWidth);
+    //Generate and move text to that location
+    translate([0, centerOffset, dividerHeight-textTopOffset]) rotate([0,90,180]) linear_extrude(height=1) {
+        text(textArray[i], size=cardTextWidth, font="EPISODE I");
+    }
 }
 
+//Generate a wall and front slot spacer to hold cards
 module slotF(numCards=10) {
-    cube([innerWidth,wallThickness,wallHeight]);
-    translate([slotWidth,wallThickness,0]) {
+    difference() {
+        cube([innerWidth,dividerThickness,dividerHeight]);
+        translate([(innerWidth-cutoutWidth)/2,0,5]) wallCutout(cutoutWidth);
+    }
+    
+    translate([slotWidth,dividerThickness,0]) {
         spacer(false, numCards);
     }
 }
 
+//Generate a wall and back slot spacer to hold cards
 module slotB(numCards=10) {
-    cube([innerWidth,wallThickness,wallHeight]);
-    translate([0,wallThickness,0]) {
+    //Cutout some of the middle of the spacer to save plastic/time
+    difference() {
+        cube([innerWidth,dividerThickness,dividerHeight]);
+        translate([(innerWidth-cutoutWidth)/2,0,5]) wallCutout(cutoutWidth);
+    }
+    
+    translate([0,dividerThickness,0]) {
         spacer(true, numCards);
     }
+}
+
+module wallCutout(width) {
+    /* Reference: System of equations to calculate maximum centered cuttout width (card touches edge)
+    side = (outerWidth - cutoutWidth)/2;
+    side + cutoutWidth[max] = cardWidth;
+    ->
+    (outerWidth - cutoutWidth)/2 + cutoutWidth = cardWidth
+    1/2cutoutWidth = cardWidth - 1/2*outerWidth
+    cutoutWidth = 2*cardWidth - outerWidth
+    */
+    
+    difference() {
+        cube([width,dividerThickness, dividerHeight-15]);
+        
+        //Bevel the edges to look nice
+        translate([4,0,0]) rotate([0,0,90]) tPrism(dividerThickness,4,10);
+        translate([width-4,dividerThickness,0]) rotate([0,0,270]) tPrism(dividerThickness,4,10);
+        translate([4,dividerThickness,dividerHeight-15]) rotate([0,180,90]) tPrism(dividerThickness,4,10);
+        translate([width-4,0,dividerHeight-15]) rotate([0,180,270]) tPrism(dividerThickness,4,10);
+    }
+    
 }
 
 module spacer(back=false, numCards=10) {
     thickness = numCards * THICK;
     
+    //Cutout some of the middle of the spacer to save plastic/time
     difference() {
-        cube([slotOffset,thickness,wallHeight]);
+        cube([slotSpacerDepth,thickness,dividerHeight]);
         
         if (back) {
-            translate([0,0,bottomChamferEdge+bottomChamferZ]) cube([slotOffset,thickness,wallHeight-topChamferEdge-bottomChamferEdge-topChamferZ-bottomChamferZ]);
+            translate([0,0,bottomChamferEdge+bottomChamferZ]) cube([slotSpacerDepth,thickness,dividerHeight-topChamferEdge-bottomChamferEdge-topChamferZ-bottomChamferZ]);
             
-            translate([slotOffset-bottomCfrX,0,bottomChamferEdge+bottomChamferZ]) rotate([180,0,90]) tPrism(thickness, bottomCfrX, bottomChamferZ);
-            translate([slotOffset,0,wallHeight-topChamferEdge]) rotate([270,0,90]) tPrism(thickness, topChamferZ, topCfrX);
+            translate([slotSpacerDepth-bottomCfrX,0,bottomChamferEdge+bottomChamferZ]) rotate([180,0,90]) tPrism(thickness, bottomCfrX, bottomChamferZ);
+            translate([slotSpacerDepth,0,dividerHeight-topChamferEdge]) rotate([270,0,90]) tPrism(thickness, topChamferZ, topCfrX);
         } else {
-            translate([0,0,bottomChamferEdge+bottomChamferZ]) cube([slotOffset,thickness,wallHeight-topChamferEdge-bottomChamferEdge-topChamferZ-bottomChamferZ]);
+            translate([0,0,bottomChamferEdge+bottomChamferZ]) cube([slotSpacerDepth,thickness,dividerHeight-topChamferEdge-bottomChamferEdge-topChamferZ-bottomChamferZ]);
             
             //translate([bottomCfrX,0,bottomChamferEdge+bottomChamferZ]) mirror([1,0,0]) rotate([180,0,90]) tPrism(thickness, bottomCfrX, bottomChamferZ);
             translate([bottomCfrX,thickness,bottomChamferEdge+bottomChamferZ]) rotate([180,0,270]) tPrism(thickness, bottomCfrX, bottomChamferZ);
-            //translate([0,0,wallHeight-topChamferEdge]) mirror([1,0,0]) rotate([270,0,90]) tPrism(thickness, topChamferZ, topCfrX);
-            translate([0,thickness,wallHeight-topChamferEdge]) rotate([270,0,270]) tPrism(thickness, topChamferZ, topCfrX);
+            //translate([0,0,dividerHeight-topChamferEdge]) mirror([1,0,0]) rotate([270,0,90]) tPrism(thickness, topChamferZ, topCfrX);
+            translate([0,thickness,dividerHeight-topChamferEdge]) rotate([270,0,270]) tPrism(thickness, topChamferZ, topCfrX);
         }
         
     }
 }
 
-module tPrism(l, w, h){
+module tPrism(d, w, h){
        polyhedron(
-           points=[[0,0,0], [l,0,0], [l,w,0], [0,w,0], [0,w,h], [l,w,h]],
+           points=[[0,0,0], [d,0,0], [d,w,0], [0,w,0], [0,w,h], [d,w,h]],
            faces=[[0,1,2,3],[5,4,3,2],[0,4,5,1],[0,3,4],[5,2,1]]
        );
 }
@@ -153,8 +228,8 @@ module tPrism(l, w, h){
 module endTops(wallLength) {
     endTopWidth = 12;
     endTopOverlap = 20;
-    translate([0,-endTopWidth,wallHeight-endTopOverlap]) endTopClip(wallLength, endTopWidth);
-    translate([0,wallLength+endTopWidth,wallHeight-endTopOverlap]) mirror([0,1,0]) endTopClip(wallLength, endTopWidth);
+    translate([0,-endTopWidth,dividerHeight-endTopOverlap]) endTopClip(wallLength, endTopWidth);
+    translate([0,wallLength+endTopWidth,dividerHeight-endTopOverlap]) mirror([0,1,0]) endTopClip(wallLength, endTopWidth);
 }
 
 module endTopClip(wallLength, finalThickness) {
@@ -166,7 +241,7 @@ module endTopClip(wallLength, finalThickness) {
     }
     
     
-    //translate([0,wallLength+outerWallThickness,wallHeight]) cube([outerWidth, 12, cardOrSleeveHeight-wallHeight]);
+    //translate([0,wallLength+outerWallThickness,dividerHeight]) cube([outerWidth, 12, cardOrSleeveHeight-dividerHeight]);
 }
 
 module clipHole() {
@@ -179,8 +254,8 @@ module lid(wallLength) {
     
     //top
     translate([0,0,upperHeight]) difference() {
-        cube([outerWidth, wallLength+12+12, 4]);
-        translate([outerWidth/2,wallLength/2+12,4-1.2]) makeLidText(4, 1.2);
+        cube([outerWidth, wallLength+12+12, lidThickness]);
+        translate([outerWidth/2,wallLength/2+12,lidThickness-lidTextDepth]) makeLidText(lidThickness, lidTextDepth);
     }
     
     //sides
