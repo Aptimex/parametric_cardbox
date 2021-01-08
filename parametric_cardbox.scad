@@ -2,39 +2,44 @@ use <./OptimusPrinceps.ttf>
 use <./OptimusPrincepsSemiBold.ttf>
 use <./EPISODE1.ttf>
 use <./norwester.otf>
+use <./Orbitron-Bold.ttf>
 use <MCAD/2Dshapes.scad>
-prefixFont = "OptimusPrinceps";
-labelFont = "Norwester";
+
+prefixFont = "Norwester";//"DominionSymbols";
+labelFont = "Orbitron";
 lidFont = "EPISODE I";
 
-!clipTest();
-module clipTest() {
-    translate([30,0,16.2]) rotate([-90,0,-90]) uClip();
-    translate([30,-5-clipShelf,0]) cube([clipWidth,15,1.2]);
-    
-    difference() {
-        cube([18,15,10]);
-        translate([3, clipShelf, -14.5]) uClipHole();
-    }
-}
 
-
+//Make a multiple of layer height
 bottomThickness = 1.8;
-outerWallThickness = 1.5;
+//The 4 sides of the box; should be a multiple of nozzle size
+outerWallThickness = 1.6;
+//Less than 4 will probably make it more flexible than rigid
 lidThickness = 4;
 
-cardOrSleeveWidth = 60;
 
+//Width of cards (or sleeves on cards)
+cardOrSleeveWidth = 60;
+//Extra slot width; make at least 2-3mm for cards to insert easily
+slotExtraWidth = 2;
+////Height of cards (or sleeves on cards)
 cardOrSleeveHeight = 94;
+//Extra space between top of cards/sleeves and the lid
 cardExtraHeight = 2;
 slotVerticalSpace = cardOrSleeveHeight + cardExtraHeight;
-slotExtraWidth = 2;
+//How deep the alternating slots should be offset from the outer side
 slotSpacerDepth = 15;
 
-dividerThickness = 1.2; //0.8 is too thin for bridging
-dividerHeight = 70; //making this shorter won't lower print time
+
+//Thickness of walls separating card groups; thinner than 1.2 might cause bridging issues
+dividerThickness = 1.2;
+//How tall to make the divider compartments; ~75% of card height is a good rule of thumb, and making them shorter won't reduce print time/material significantly if printing with a lid.
+dividerHeight = 70;
+//How much the dividers should overlap the cards; less than 2mm may cause cards to partially slip into adjascent slots during insertion. Set >= (card width) to eliminate cutouts entirely.
 dividerCardOverlap = 2;
 
+
+//Auto-calculated values
 slotWidth = cardOrSleeveWidth+slotExtraWidth;
 innerWidth = slotWidth+slotSpacerDepth;
 outerWidth = innerWidth + outerWallThickness*2;
@@ -42,55 +47,95 @@ upperHeight = slotVerticalSpace-dividerHeight;
 cutoutWidth = innerWidth-2*slotSpacerDepth-slotExtraWidth-dividerCardOverlap;
 initialOffset = outerWallThickness-dividerThickness;
 
+
+//How thich each individual card is
 cardThickness = 0.3;
+//Listed thickness of card sleeve material (one side of sleeve)
 sleeveThickness = .04;
+//Extra space to add to each [sleeved] card thickness to account for manufacturing variability
 cardAdditionalThickness = 0.02;
-slotExtraThickness = 1;
+//Extra slot wiggle room in the direction of the card stack. <2 will require cards to be tightly compressed and may be too tight to easily insert all at once.
+slotExtraThickness = 2;
 THICK = cardThickness + sleeveThickness*2 + cardAdditionalThickness;
 
-topChamferX = 15;
-topChamferZ = 8;
+
+topChamferX = slotSpacerDepth;
+topChamferZ = slotSpacerDepth/2;
+//How much vertical wall should be on the top of each slot offset
 topChamferEdge = 15;
 topCfrX = (topChamferX <= slotSpacerDepth) ? topChamferX : slotSpacerDepth;
-
+//X value of sloped wall on bottom of each slot offset
 bottomChamferX = 2;
+//Z value of sloped wall on bottom of each slot offset
 bottomChamferZ = 5;
+//How much vertical wall should be on the bottom of each slot offset
 bottomChamferEdge = 10;
 bottomCfrX = (bottomChamferX <= slotSpacerDepth) ? bottomChamferX : slotSpacerDepth;
 
+
+//Diameter of prefix circle
+prefixShapeSize = 5;
+//Adjust as needed to fit in space
+prefixTextWidth = 4;
+//Space between the top of the box and the start of label text (including prefixes)
+//Distance from textTopOffset to start of the label text (to make space for prefixes); Set to 0 if not using prefixes
+labelPrefixSpace = 6;
 textTopOffset = 5;
-cardTextWidth = 5;
+//Desired width of text when vertical; this is just the font "size," and may not reflect actual width
+labelTextWidth = 5;
+//How deep to impress the lid text; should be a multiple of layer height
 lidTextDepth = 1.2;
 
-//Width of the top shelf
+
+//Width of the lid support shelf
 topWidth = 15;
-//How far the top taper overlaps with the box side
+//How far the lid support taper overlaps with the box side; smaller values may lead to weak spot where lid support connects to top of box
 topOverlap = 20;
 
+//How wide to make the lid clips
 clipWidth = 12;
+//How tall the clips should be; smaller depths may decrease clip lifespan
 clipDepth = 20;
+//How much the clip shelf sticks out past the clip body; less than 2 will make lid more prone to popping off; more than 3 will make clips difficult to engage
 clipShelf = 2.5;
 
 
+//Generate the main box
 makeBox = true;
-lidOnTop = true;
-lidOnSide = true;
+//Generate the lid shelf; turn off if you don't need a lid at all.
+makeLidSupport = true;
+//Print angles on top of dividers to make it easer to slide in cards (from the right side) without getting caught on the dividers
+dividerTriangles = true;
+//Generate a lid on top; only use to visualize the fit, don't print this way.
+lidOnTop = false;
+//Generate the lid on the side for printing
+lidOnSide = false;
 //lidDeconstructed = false;
+//Make embossed lebels for each slot
 makeSideLabels = true;
+//Emboss a circle in the prefix location and emboss the prefix text within it
+prefixInset = false;
+//Generate text debossed into the top of the lid
 genLidText = true;
+//Generate efficient supports for clips so the slicer doesn't have to generate any
+makeClipSupport = true;
 
+
+//Text to deboss into the top of the lid
 lidText = "Tmp";
+//Size to make the lid text
 lidTextHeight = 20;
 
-cards = [60,10];
-titles = ["Copper", "Kingdom"];
-prefix = ["0"];
-//labelPrefixSpacer = "  ";
-labelPrefixSpace = 6; //including prefix space itself
+//How many cards go in each slot
+cards = [10,10];
+//Label of each slot (in same order as cards array)
+titles = ["A", "B"];
+//Prefix for each slot (in same order as cards array)
+prefix = ["0", "5"];
 
 
-generate(lidText, cards, titles, prefix, 0, initialOffset);
-//dominion2e();
+//generate(lidText, cards, titles, prefix, 0, initialOffset);
+dominionBase();
 
 //Dominion 2e base cards
 module dominionBase() {
@@ -117,7 +162,7 @@ module dominion2e() {
     lidText = "Dominion";
     cards = [10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,12,26];
     titles = ["Artisan", "Bandit", "Bureaucrat", "Cellar", "Chapel", "Council Room", "Festival", "Harbinger", "Laboratory", "Library", "Market", "Merchant", "Militia", "Mine", "Moat", "Moneylender", "Poacher", "Remodel", "Sentry", "Smithy", "Throne Room", "Vassal", "Village", "Witch", "Workshop", "Gardens", "Randomizer"];
-    prefix = [6,5,4,2,2,5,5,3,5,5,5,3,4,5,2,4,4,4,5,4,4,3,3,5,3,4,"   "];
+    prefix = ["6",5,4,2,2,5,5,3,5,5,5,3,4,5,2,4,4,4,5,4,4,3,3,5,3,4,"   "];
     generate(lidText, cards, titles, prefix, 0, initialOffset);
     
 }
@@ -168,7 +213,7 @@ module generate(boxTitle, cardArray, titleArray, prefixArray, i, offset, flip=fa
             sides(finalLength);
             
             //Generate end supports for the lid
-            endTops(finalLength);
+            if (makeLidSupport) endTops(finalLength);
         }
         
         //Generate the lid on top to verify fit
@@ -192,15 +237,19 @@ module sides(length=50) {
     
     //Right side
     cube([outerWidth,outerWallThickness,dividerHeight]);
+    translate([0,outerWallThickness,dividerHeight]) mirror([0,1,0]) tPrism(outerWidth, outerWallThickness, outerWallThickness);
     
     //Left side
-    translate([0,length-outerWallThickness,0]) cube([outerWidth,outerWallThickness,dividerHeight]);
+    translate([0,length-outerWallThickness,0]) {
+        cube([outerWidth,outerWallThickness,dividerHeight]);
+        translate([0,0,dividerHeight]) tPrism(outerWidth, outerWallThickness, outerWallThickness);
+    }
 }
 
 //Generate the side labels
 module makeLabel(prefixArray, labelArray, i, offset, thickness) {
     //Calculate location of text centered on slot
-    centerOffset = offset+dividerThickness+(cardTextWidth+thickness)/2;
+    centerOffset = offset+dividerThickness+(labelTextWidth+thickness)/2;
     
     //Handle missing prefix or label gracefully
     thisPrefix = (prefixArray[i] == undef) ? "" : prefixArray[i];
@@ -208,17 +257,23 @@ module makeLabel(prefixArray, labelArray, i, offset, thickness) {
     
     //Generate and move text to that location
     translate([0, centerOffset, dividerHeight-textTopOffset-labelPrefixSpace]) rotate([0,90,180]) linear_extrude(height=1) {
-        //text(str(thisPrefix,labelPrefixSpacer,thisLabel), size=cardTextWidth, font=labelFont);
-        text(str(thisLabel), size=cardTextWidth, font=labelFont);
+        //text(str(thisPrefix,labelPrefixSpacer,thisLabel), size=labelTextWidth, font=labelFont);
+        text(str(thisLabel), size=labelTextWidth, font=labelFont);
     }
     makePrefix(thisPrefix, centerOffset);
 }
 
+//Generate text (and/or a circle) to put before each slot label
 module makePrefix(thisPrefix, centerOffset) {
     translate([0, centerOffset, dividerHeight-textTopOffset]) rotate([0,90,180]) linear_extrude(height=1) {
-        translate([cardTextWidth/2,cardTextWidth/2,0]) difference() {
-            circle(d=cardTextWidth, $fn=20);
-            text(str(thisPrefix), size=cardTextWidth, font=prefixFont, halign="center", valign="center");
+        translate([labelTextWidth/2,labelTextWidth/2,0]) {
+            
+            if (prefixInset) difference() {
+                circle(d=prefixShapeSize, $fn=20);
+                text(str(thisPrefix), size=prefixTextWidth, font=prefixFont, halign="center", valign="center");
+                
+            } else text(str(thisPrefix), size=prefixTextWidth, font=prefixFont, halign="center", valign="center");
+            
         }
         
     }
@@ -226,6 +281,11 @@ module makePrefix(thisPrefix, centerOffset) {
 
 //Generate a wall and front slot spacer to hold cards
 module slotF(numCards=10) {
+    if (dividerTriangles) translate([0,0,dividerHeight]) {
+        translate([0,dividerThickness,0]) mirror([0,1,0]) tPrism(innerWidth,dividerThickness,dividerThickness);
+        //translate([0,dividerThickness,0]) mirror([0,1,0]) tPrism(innerWidth-slotSpacerDepth*2,dividerThickness/2,2);
+    }
+    
     difference() {
         cube([innerWidth,dividerThickness,dividerHeight]);
         translate([(innerWidth-cutoutWidth)/2,0,5]) wallCutout(cutoutWidth);
@@ -238,6 +298,11 @@ module slotF(numCards=10) {
 
 //Generate a wall and back slot spacer to hold cards
 module slotB(numCards=10) {
+    if (dividerTriangles) translate([0,0,dividerHeight]) {
+        translate([0,dividerThickness,0]) mirror([0,1,0]) tPrism(innerWidth,dividerThickness,dividerThickness);
+        //translate([0,dividerThickness,0]) mirror([0,1,0]) tPrism(innerWidth-slotSpacerDepth*2,dividerThickness/2,2);
+    }
+    
     //Cutout some of the middle of the spacer to save plastic/time
     difference() {
         cube([innerWidth,dividerThickness,dividerHeight]);
@@ -371,24 +436,52 @@ module lid(wallLength, title="") {
     */
 }
 
-//These are crap, don't use them
+/*These are crap, don't use them
 module lidClip() {
     cube([clipWidth, clipThickness, clipDepth+clipExtends]);
     translate([0,clipThickness+clipShelf,clipExtends]) rotate([180,0,0]) tPrism(clipWidth,clipShelf,clipExtends);
 }
+*/
 
-//Vastly superior clips
+//Vastly superior clips; minimal customization because they work well with these values (and not many others), so why would you change them?
 module uClip() {
     mirror([0,1,0]) linear_extrude(height=clipWidth) donutSlice([3,3],[5,5],0,180);
     translate([-5,0,0]) cube([2,clipDepth-5,clipWidth]);
-    translate([3,0,0]) cube([2,clipDepth-6,clipWidth]); //movable end
+    translate([3,0,0]) {
+        cube([2,clipDepth-6,clipWidth]); //movable end
+        
+        if (makeClipSupport) {
+            //supports
+            translate([0,14.2,0]) cube([2,1-.2,.8]);
+            translate([0,14.2,(clipWidth-.8)/2]) cube([2,1-.2,.8]);
+            translate([0,14.2,clipWidth-.8]) cube([2,1-.2,.8]);
+            
+            translate([1+clipShelf,12.2,0]) cube([1,3-.2,.8]);
+            translate([1+clipShelf,12.2,clipWidth-.8]) cube([1,3-.2,.8]);
+        }
+    }
     
-    //cube([12, 2, 10]);
     translate([5,9,clipWidth]) rotate([0,90,0]) tPrism(clipWidth,3,clipShelf);
+    
 }
 
+//Generate text to put on the lid
 module makeLidText(lidThickness, depth, title="") {
     rotate([0,0,-90]) linear_extrude(height=depth) {
         text(title, size=lidTextHeight, font=lidFont, halign="center", valign="center");
     }
 }
+
+/*Debug stuff for clips
+//translate([0,-20,-bottomThickness]) clipTest();
+module clipTest() {
+    lidOnSIde = true;
+    translate([30,10,16.2]) rotate([-90,0,-90]) uClip();
+    translate([30,10-5-clipShelf,0]) cube([clipWidth,15,1.2]);
+    
+    difference() {
+        cube([18,15,10]);
+        translate([3, clipShelf, -14.5]) uClipHole();
+    }
+}
+*/
