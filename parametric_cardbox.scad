@@ -5,10 +5,46 @@ use <./norwester.otf>
 use <./Orbitron-Bold.ttf>
 use <MCAD/2Dshapes.scad>
 
-prefixFont = "Norwester";//"DominionSymbols";
-labelFont = "Orbitron";
-lidFont = "EPISODE I";
 
+/* [Required] */
+
+//Text to deboss into the top of the lid
+lidText = "Box Name";
+//Font size for the lid text
+lidTextHeight = 20;
+//How many cards go in each slot
+cards = [10,10,10,10,10];
+//Label of each slot (in same order as cards array)
+titles = ["Label A", "Label B"]; 
+//Prefix for each slot (in same order as cards array)
+prefix = ["0", "5"]; 
+
+//Width of cards (or sleeves on cards)
+cardOrSleeveWidth = 60;
+//Extra slot width; make at least 2-3mm for cards to insert easily
+slotExtraWidth = 2;
+//Height of cards (or sleeves on cards)
+cardOrSleeveHeight = 94;
+//Extra space between top of cards/sleeves and the lid
+cardExtraHeight = 2;
+slotVerticalSpace = cardOrSleeveHeight + cardExtraHeight;
+
+//How thich each individual card is
+cardThickness = 0.3;
+//Listed thickness of card sleeve material (one side of sleeve)
+sleeveThickness = .04;
+//Extra space to add to each [sleeved] card thickness to account for manufacturing variability
+cardAdditionalThickness = 0.02;
+//Extra slot wiggle room in the direction of the card stack. <2 will require cards to be tightly compressed and may be too tight to easily insert all at once. 
+slotExtraThickness = 2;
+THICK = cardThickness + sleeveThickness*2 + cardAdditionalThickness;
+
+//How tall to make the divider compartments; ~75% of card height is a good rule of thumb, and making them shorter won't reduce print time/material significantly if printing with a lid.
+dividerHeight = 70;
+
+
+
+/* [Optional (basic)] */
 
 //Make a multiple of layer height
 bottomThickness = 1.8;
@@ -18,46 +54,48 @@ outerWallThickness = 1.6;
 lidThickness = 4;
 
 
-//Width of cards (or sleeves on cards)
-cardOrSleeveWidth = 60;
-//Extra slot width; make at least 2-3mm for cards to insert easily
-slotExtraWidth = 2;
-////Height of cards (or sleeves on cards)
-cardOrSleeveHeight = 94;
-//Extra space between top of cards/sleeves and the lid
-cardExtraHeight = 2;
-slotVerticalSpace = cardOrSleeveHeight + cardExtraHeight;
 //How deep the alternating slots should be offset from the outer side
 slotSpacerDepth = 15;
-
-
 //Thickness of walls separating card groups; thinner than 1.2 might cause bridging issues
-dividerThickness = 1.2;
-//How tall to make the divider compartments; ~75% of card height is a good rule of thumb, and making them shorter won't reduce print time/material significantly if printing with a lid.
-dividerHeight = 70;
-//How much the dividers should overlap the cards; less than 2mm may cause cards to partially slip into adjascent slots during insertion. Set >= (card width) to eliminate cutouts entirely.
+dividerThickness = 1.2; 
+//How much the dividers should overlap the cards; less than 2mm may cause cards to partially slip into adjascent slots during insertion. Set (>= card width) to eliminate cutouts entirely. 
 dividerCardOverlap = 2;
 
 
-//Auto-calculated values
-slotWidth = cardOrSleeveWidth+slotExtraWidth;
-innerWidth = slotWidth+slotSpacerDepth;
-outerWidth = innerWidth + outerWallThickness*2;
-upperHeight = slotVerticalSpace-dividerHeight;
-cutoutWidth = innerWidth-2*slotSpacerDepth-slotExtraWidth-dividerCardOverlap;
-initialOffset = outerWallThickness-dividerThickness;
+//Width of the lid support shelf
+topWidth = 15;  
+//How far the lid support taper overlaps with the box side; smaller values may lead to weak spot where lid support connects to top of box
+topOverlap = 20;
+
+//How wide to make the lid clips
+clipWidth = 12;
+//How tall the clips should be; smaller depths may decrease clip lifespan
+clipDepth = 20;
+//How much the clip shelf sticks out past the clip body; less than 2 will make lid more prone to popping off; more than 3 will make clips difficult to engage
+clipShelf = 2.5;
 
 
-//How thich each individual card is
-cardThickness = 0.3;
-//Listed thickness of card sleeve material (one side of sleeve)
-sleeveThickness = .04;
-//Extra space to add to each [sleeved] card thickness to account for manufacturing variability
-cardAdditionalThickness = 0.02;
-//Extra slot wiggle room in the direction of the card stack. <2 will require cards to be tightly compressed and may be too tight to easily insert all at once.
-slotExtraThickness = 2;
-THICK = cardThickness + sleeveThickness*2 + cardAdditionalThickness;
 
+//Space between the top of the box and the start of label text (including prefixes)
+textTopOffset = 5;
+//Desired width of text when vertical; this is just the font "size," and may not reflect actual width
+labelTextWidth = 5;
+//How deep to impress the lid text; should be a multiple of layer height
+lidTextDepth = 1.2;
+//Diameter of prefix circle (if using inset prefixes)
+prefixShapeSize = 5;
+//Size of prefix text; adjust as needed to fit in space
+prefixTextWidth = 5;
+//Distance from textTopOffset to start of the label text (to make space for prefixes); Set to 0 if not using prefixes
+labelPrefixSpace = 8;
+
+
+prefixFont = "Norwester";
+labelFont = "Orbitron";
+lidFont = "EPISODE I";
+
+
+/* [Optional (advanced)] */
 
 topChamferX = slotSpacerDepth;
 topChamferZ = slotSpacerDepth/2;
@@ -72,66 +110,38 @@ bottomChamferZ = 5;
 bottomChamferEdge = 10;
 bottomCfrX = (bottomChamferX <= slotSpacerDepth) ? bottomChamferX : slotSpacerDepth;
 
-
-//Diameter of prefix circle
-prefixShapeSize = 5;
-//Adjust as needed to fit in space
-prefixTextWidth = 4;
-//Space between the top of the box and the start of label text (including prefixes)
-//Distance from textTopOffset to start of the label text (to make space for prefixes); Set to 0 if not using prefixes
-labelPrefixSpace = 6;
-textTopOffset = 5;
-//Desired width of text when vertical; this is just the font "size," and may not reflect actual width
-labelTextWidth = 5;
-//How deep to impress the lid text; should be a multiple of layer height
-lidTextDepth = 1.2;
-
-
-//Width of the lid support shelf
-topWidth = 15;
-//How far the lid support taper overlaps with the box side; smaller values may lead to weak spot where lid support connects to top of box
-topOverlap = 20;
-
-//How wide to make the lid clips
-clipWidth = 12;
-//How tall the clips should be; smaller depths may decrease clip lifespan
-clipDepth = 20;
-//How much the clip shelf sticks out past the clip body; less than 2 will make lid more prone to popping off; more than 3 will make clips difficult to engage
-clipShelf = 2.5;
-
+/* [Components to generate] */
 
 //Generate the main box
 makeBox = true;
-//Generate the lid shelf; turn off if you don't need a lid at all.
+//Generate the lid shelf; turn off if you don't need a lid and want JUST the organizer box
 makeLidSupport = true;
 //Print angles on top of dividers to make it easer to slide in cards (from the right side) without getting caught on the dividers
 dividerTriangles = true;
-//Generate a lid on top; only use to visualize the fit, don't print this way.
+//Generate a lid on top of the box;  DO NOT PRINT;only use to visualize the fit
 lidOnTop = false;
-//Generate the lid on the side for printing
-lidOnSide = false;
-//lidDeconstructed = false;
+//Generate the lid on the side (upside-down) for printing
+lidOnSide = true;
+//lidDeconstructed = false; //TODO
 //Make embossed lebels for each slot
 makeSideLabels = true;
 //Emboss a circle in the prefix location and emboss the prefix text within it
 prefixInset = false;
 //Generate text debossed into the top of the lid
 genLidText = true;
-//Generate efficient supports for clips so the slicer doesn't have to generate any
+//Generate efficient supports for lid clips so the slicer doesn't have to generate any
 makeClipSupport = true;
+//Generate sides for the lid so everything is fully enclosed
+makeLidSides = true;
 
 
-//Text to deboss into the top of the lid
-lidText = "Tmp";
-//Size to make the lid text
-lidTextHeight = 20;
-
-//How many cards go in each slot
-cards = [10,10];
-//Label of each slot (in same order as cards array)
-titles = ["A", "B"];
-//Prefix for each slot (in same order as cards array)
-prefix = ["0", "5"];
+//Auto-calculated values
+slotWidth = cardOrSleeveWidth+slotExtraWidth;
+innerWidth = slotWidth+slotSpacerDepth;
+outerWidth = innerWidth + outerWallThickness*2;
+upperHeight = slotVerticalSpace-dividerHeight;
+cutoutWidth = innerWidth-2*slotSpacerDepth-slotExtraWidth-dividerCardOverlap;
+initialOffset = outerWallThickness-dividerThickness;
 
 
 //generate(lidText, cards, titles, prefix, 0, initialOffset);
@@ -208,7 +218,7 @@ module generate(boxTitle, cardArray, titleArray, prefixArray, i, offset, flip=fa
         //Account for the final wall in total length
         finalLength = offset + outerWallThickness;
         
-        if (makeBox) {
+        if (makeBox) {    
             //Generate bottom and outer side walls
             sides(finalLength);
             
@@ -363,7 +373,7 @@ module spacer(back=false, numCards=10) {
     }
 }
 
-//Generate triangular prism
+//Generate triangular prism (90 deg)
 module tPrism(d, w, h){
        polyhedron(
            points=[[0,0,0], [d,0,0], [d,w,0], [0,w,0], [0,w,h], [d,w,h]],
@@ -422,8 +432,10 @@ module lid(wallLength, title="") {
     
     
     //sides
+    if (makeLidSides) {
     translate([0,topWidth+gap,gap]) cube([outerWallThickness, wallLength-(gap*2), upperHeight+lidThickness-gap]);
     translate([outerWidth-outerWallThickness,topWidth+gap,gap]) cube([outerWallThickness, wallLength-(gap*2), upperHeight+lidThickness-gap]);
+    }
     
     //clips
     translate([clipWidth+(outerWidth-clipWidth)/2,5+3+.1,upperHeight-15]) rotate([90,0,-90]) uClip();
@@ -485,3 +497,5 @@ module clipTest() {
     }
 }
 */
+
+
