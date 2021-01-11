@@ -73,6 +73,8 @@ clipWidth = 12;
 clipDepth = 20;
 //How much the clip shelf sticks out past the clip body; less than 2 will make lid more prone to popping off; more than 3 will make clips difficult to engage
 clipShelf = 2.5;
+//Generate slots in lid (instead of in-place clip) so clips printed separately (for increased strength) can be easily glued on in the right place
+lidClipsSeparate = true;
 
 
 
@@ -114,25 +116,28 @@ bottomCfrX = (bottomChamferX <= slotSpacerDepth) ? bottomChamferX : slotSpacerDe
 
 //Generate the main box
 makeBox = true;
+//Make embossed lebels for each slot
+makeSideLabels = true;
+//Emboss a circle in the prefix location and emboss the prefix text within it
+prefixInset = false;
 //Generate the lid shelf; turn off if you don't need a lid and want JUST the organizer box
 makeLidSupport = true;
-//Print angles on top of dividers to make it easer to slide in cards (from the right side) without getting caught on the dividers
-dividerTriangles = true;
 //Generate a lid on top of the box;  DO NOT PRINT;only use to visualize the fit
 lidOnTop = false;
 //Generate the lid on the side (upside-down) for printing
 lidOnSide = true;
 //lidDeconstructed = false; //TODO
-//Make embossed lebels for each slot
-makeSideLabels = true;
-//Emboss a circle in the prefix location and emboss the prefix text within it
-prefixInset = false;
-//Generate text debossed into the top of the lid
-genLidText = true;
-//Generate efficient supports for lid clips so the slicer doesn't have to generate any
-makeClipSupport = true;
 //Generate sides for the lid so everything is fully enclosed
 makeLidSides = true;
+//Generate text debossed into the top of the lid
+genLidText = true;
+//Generate efficient supports for in-place lid clips so the slicer doesn't have to generate any
+makeClipSupport = false;
+//Print angles on top of dividers to make it easer to slide in cards (from the right side) without getting caught on the dividers
+dividerTriangles = true;
+//Generates the separated lid clips in a print orientation that will make them much stronger than an in-place print. Make sure to print two of them. 
+separatedClips = true;
+
 
 
 //Auto-calculated values
@@ -144,8 +149,8 @@ cutoutWidth = innerWidth-2*slotSpacerDepth-slotExtraWidth-dividerCardOverlap;
 initialOffset = outerWallThickness-dividerThickness;
 
 
-//generate(lidText, cards, titles, prefix, 0, initialOffset);
-dominionBase();
+generate(lidText, cards, titles, prefix, 0, initialOffset);
+//dominionBase();
 
 //Dominion 2e base cards
 module dominionBase() {
@@ -231,6 +236,14 @@ module generate(boxTitle, cardArray, titleArray, prefixArray, i, offset, flip=fa
         
         //Generate the lid on the floor for printing
         if (lidOnSide) translate([outerWidth*2+5,-topWidth,upperHeight+lidThickness-bottomThickness]) rotate([0,180,0]) lid(finalLength, boxTitle);
+        
+        if (separatedClips) {
+            translate([outerWidth*2+20,5,-bottomThickness]) { 
+                uClip();
+            }
+        
+            
+        }
     }
 }
 
@@ -428,6 +441,13 @@ module lid(wallLength, title="") {
         if (genLidText) {
             translate([outerWidth/2,wallLength/2+topWidth,lidThickness-lidTextDepth]) makeLidText(lidThickness, lidTextDepth, title);
         }
+        
+        //Clip spaces
+        if (lidClipsSeparate) {
+            translate([(outerWidth-clipWidth)/2,0,1.5]) mirror([0,0,1]) cube([clipWidth,15+clipShelf,lidThickness]);
+        
+            translate([(outerWidth-clipWidth)/2,wallLength+topWidth*2-15-clipShelf,1.5]) mirror([0,0,1]) cube([clipWidth,15+clipShelf,lidThickness]);
+        }
     }
     
     
@@ -438,9 +458,14 @@ module lid(wallLength, title="") {
     }
     
     //clips
-    translate([clipWidth+(outerWidth-clipWidth)/2,5+3+.1,upperHeight-15]) rotate([90,0,-90]) uClip();
+    if (lidClipsSeparate) { //generate to the side
+        
+    } else { //generate in place; prone to breaking
+        translate([clipWidth+(outerWidth-clipWidth)/2,5+3+.1,upperHeight-15]) rotate([90,0,-90]) uClip();
+        
+        translate([(outerWidth-clipWidth)/2,wallLength+topWidth*2-5-3.1,upperHeight-15]) rotate([90,0,90]) uClip();
+        }
     
-    translate([(outerWidth-clipWidth)/2,wallLength+topWidth*2-5-3.1,upperHeight-15]) rotate([90,0,90]) uClip();
     
     /*Old crappy clips translate([clipWidth+(outerWidth-clipWidth)/2,clipOffsetHoriz+clipThickness+.1,upperHeight-clipDepth-clipExtends]) rotate([0,0,180]) lidClip();
     //translate([(outerWidth-clipWidth)/2,wallLength+topWidth*2-outerWallThickness-clipOffsetHoriz-clipHoleExtraHoriz,upperHeight-clipDepth-clipExtends]) lidClip();
@@ -474,6 +499,11 @@ module uClip() {
     }
     
     translate([5,9,clipWidth]) rotate([0,90,0]) tPrism(clipWidth,3,clipShelf);
+    
+    //Base
+    if (lidClipsSeparate) {
+        translate([5+clipShelf+.5+.1,clipDepth-5,0]) mirror([1,0,0]) cube([clipShelf+15,1.5,clipWidth]);
+    }
     
 }
 
