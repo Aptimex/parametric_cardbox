@@ -1,3 +1,5 @@
+**Currently the Thingiverse Customizer is throwing a generic "Parser error in [last line]: syntax error Can't parse file ..." error, even after I remove all the custom font imports (and references). Until I (or someone else) can figure out why you'll have to use OpenSCAD 2019.05 (https://www.openscad.org/downloads.html) to customize this.**
+
 Based on play0r's really nice dominion box designs (https://www.thingiverse.com/thing:4696563). I love the look, but found a few areas for improvement after printing one:
 - The lid slides off very easily and doesn't lock into place, so it's not very good for transport
 - There's a fair amount of internal geometry that can be removed to reduce plastic and print time
@@ -52,3 +54,5 @@ If possible, please include a link to a picture of the printed preset (with card
 
 #### Other
 All included fonts are distributed under licenses that allow for free personal and commercial use.
+
+This is available on Thingiverse here: https://www.thingiverse.com/thing:4720741

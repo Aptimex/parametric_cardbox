@@ -15,9 +15,9 @@ lidTextHeight = 20;
 //How many cards go in each slot
 cards = [10,10,10,10,10];
 //Label of each slot (in same order as cards array)
-titles = ["Label A", "Label B"]; 
+titles = ["Label A", "Label B"];
 //Prefix for each slot (in same order as cards array)
-prefix = ["0", "5"]; 
+prefix = ["0", "5"];
 
 //Width of cards (or sleeves on cards)
 cardOrSleeveWidth = 60;
@@ -35,7 +35,7 @@ cardThickness = 0.3;
 sleeveThickness = .04;
 //Extra space to add to each [sleeved] card thickness to account for manufacturing variability
 cardAdditionalThickness = 0.02;
-//Extra slot wiggle room in the direction of the card stack. <2 will require cards to be tightly compressed and may be too tight to easily insert all at once. 
+//Extra slot wiggle room in the direction of the card stack. <2 will require cards to be tightly compressed and may be too tight to easily insert all at once.
 slotExtraThickness = 2;
 THICK = cardThickness + sleeveThickness*2 + cardAdditionalThickness;
 
@@ -57,13 +57,13 @@ lidThickness = 4;
 //How deep the alternating slots should be offset from the outer side
 slotSpacerDepth = 15;
 //Thickness of walls separating card groups; thinner than 1.2 might cause bridging issues
-dividerThickness = 1.2; 
-//How much the dividers should overlap the cards; less than 2mm may cause cards to partially slip into adjascent slots during insertion. Set (>= card width) to eliminate cutouts entirely. 
+dividerThickness = 1.2;
+//How much the dividers should overlap the cards; less than 2mm may cause cards to partially slip into adjascent slots during insertion. Set (>= card width) to eliminate cutouts entirely.
 dividerCardOverlap = 2;
 
 
 //Width of the lid support shelf
-topWidth = 15;  
+topWidth = 15;
 //How far the lid support taper overlaps with the box side; smaller values may lead to weak spot where lid support connects to top of box
 topOverlap = 20;
 
@@ -74,7 +74,7 @@ clipDepth = 20;
 //How much the clip shelf sticks out past the clip body; less than 2 will make lid more prone to popping off; more than 3 will make clips difficult to engage
 clipShelf = 2.5;
 //Generate slots in lid (instead of in-place clip) so clips printed separately (for increased strength) can be easily glued on in the right place
-lidClipsSeparate = true;
+lidClipsSeparate = 1; // [0:No, 1:Yes]
 
 
 
@@ -115,28 +115,28 @@ bottomCfrX = (bottomChamferX <= slotSpacerDepth) ? bottomChamferX : slotSpacerDe
 /* [Components to generate] */
 
 //Generate the main box
-makeBox = true;
+makeBox = 1; // [0:No, 1:Yes]
 //Make embossed lebels for each slot
-makeSideLabels = true;
+makeSideLabels = 1; // [0:No, 1:Yes]
 //Emboss a circle in the prefix location and emboss the prefix text within it
-prefixInset = false;
+prefixInset = 0; // [0:No, 1:Yes]
 //Generate the lid shelf; turn off if you don't need a lid and want JUST the organizer box
-makeLidSupport = true;
+makeLidSupport = 1; // [0:No, 1:Yes]
 //Generate a lid on top of the box;  DO NOT PRINT;only use to visualize the fit
-lidOnTop = false;
+lidOnTop = 0; // [0:No, 1:Yes]
 //Generate the lid on the side (upside-down) for printing
-lidOnSide = true;
+lidOnSide = 1; // [0:No, 1:Yes]
 //lidDeconstructed = false; //TODO
 //Generate sides for the lid so everything is fully enclosed
-makeLidSides = true;
+makeLidSides = 1; // [0:No, 1:Yes]
 //Generate text debossed into the top of the lid
-genLidText = true;
+genLidText = 1; // [0:No, 1:Yes]
 //Generate efficient supports for in-place lid clips so the slicer doesn't have to generate any
-makeClipSupport = false;
+makeClipSupport = 0; // [0:No, 1:Yes]
 //Print angles on top of dividers to make it easer to slide in cards (from the right side) without getting caught on the dividers
-dividerTriangles = true;
-//Generates the separated lid clips in a print orientation that will make them much stronger than an in-place print. Make sure to print two of them. 
-separatedClips = true;
+dividerTriangles = 1; // [0:No, 1:Yes]
+//Generates the separated lid clips in a print orientation that will make them much stronger than an in-place print. Make sure to print two of them.
+separatedClips = 1; // [0:No, 1:Yes]
 
 
 
@@ -223,7 +223,7 @@ module generate(boxTitle, cardArray, titleArray, prefixArray, i, offset, flip=fa
         //Account for the final wall in total length
         finalLength = offset + outerWallThickness;
         
-        if (makeBox) {    
+        if (makeBox) {
             //Generate bottom and outer side walls
             sides(finalLength);
             
@@ -238,7 +238,7 @@ module generate(boxTitle, cardArray, titleArray, prefixArray, i, offset, flip=fa
         if (lidOnSide) translate([outerWidth*2+5,-topWidth,upperHeight+lidThickness-bottomThickness]) rotate([0,180,0]) lid(finalLength, boxTitle);
         
         if (separatedClips) {
-            translate([outerWidth*2+20,5,-bottomThickness]) { 
+            translate([outerWidth*2+20,5,-bottomThickness]) {
                 uClip();
             }
         
@@ -280,7 +280,6 @@ module makeLabel(prefixArray, labelArray, i, offset, thickness) {
     
     //Generate and move text to that location
     translate([0, centerOffset, dividerHeight-textTopOffset-labelPrefixSpace]) rotate([0,90,180]) linear_extrude(height=1) {
-        //text(str(thisPrefix,labelPrefixSpacer,thisLabel), size=labelTextWidth, font=labelFont);
         text(str(thisLabel), size=labelTextWidth, font=labelFont);
     }
     makePrefix(thisPrefix, centerOffset);
@@ -306,7 +305,6 @@ module makePrefix(thisPrefix, centerOffset) {
 module slotF(numCards=10) {
     if (dividerTriangles) translate([0,0,dividerHeight]) {
         translate([0,dividerThickness,0]) mirror([0,1,0]) tPrism(innerWidth,dividerThickness,dividerThickness);
-        //translate([0,dividerThickness,0]) mirror([0,1,0]) tPrism(innerWidth-slotSpacerDepth*2,dividerThickness/2,2);
     }
     
     difference() {
@@ -323,7 +321,6 @@ module slotF(numCards=10) {
 module slotB(numCards=10) {
     if (dividerTriangles) translate([0,0,dividerHeight]) {
         translate([0,dividerThickness,0]) mirror([0,1,0]) tPrism(innerWidth,dividerThickness,dividerThickness);
-        //translate([0,dividerThickness,0]) mirror([0,1,0]) tPrism(innerWidth-slotSpacerDepth*2,dividerThickness/2,2);
     }
     
     //Cutout some of the middle of the spacer to save plastic/time
@@ -458,13 +455,10 @@ module lid(wallLength, title="") {
     }
     
     //clips
-    if (lidClipsSeparate) { //generate to the side
-        
-    } else { //generate in place; prone to breaking
+    if (!lidClipsSeparate) { //generate in place; prone to breaking
         translate([clipWidth+(outerWidth-clipWidth)/2,5+3+.1,upperHeight-15]) rotate([90,0,-90]) uClip();
-        
         translate([(outerWidth-clipWidth)/2,wallLength+topWidth*2-5-3.1,upperHeight-15]) rotate([90,0,90]) uClip();
-        }
+    }
     
     
     /*Old crappy clips translate([clipWidth+(outerWidth-clipWidth)/2,clipOffsetHoriz+clipThickness+.1,upperHeight-clipDepth-clipExtends]) rotate([0,0,180]) lidClip();
@@ -527,5 +521,3 @@ module clipTest() {
     }
 }
 */
-
-
