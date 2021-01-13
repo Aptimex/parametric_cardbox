@@ -450,8 +450,20 @@ module lid(wallLength, title="") {
     
     //sides
     if (makeLidSides) {
-    translate([0,topWidth+gap,gap]) cube([outerWallThickness, wallLength-(gap*2), upperHeight+lidThickness-gap]);
-    translate([outerWidth-outerWallThickness,topWidth+gap,gap]) cube([outerWallThickness, wallLength-(gap*2), upperHeight+lidThickness-gap]);
+        
+    translate([0,topWidth+gap,gap]) difference() {
+        cube([outerWallThickness, wallLength-(gap*2), upperHeight+lidThickness-gap]);
+        
+        translate([0,outerWallThickness,0]) mirror([0,1,0]) tPrism(outerWallThickness,outerWallThickness,outerWallThickness);
+        translate([0,wallLength-outerWallThickness-gap,0]) mirror([0,0,0]) tPrism(outerWallThickness,outerWallThickness,outerWallThickness);
+    }
+    
+    translate([outerWidth-outerWallThickness,topWidth+gap,gap]) difference() { 
+        cube([outerWallThickness, wallLength-(gap*2), upperHeight+lidThickness-gap]);
+        
+        translate([0,outerWallThickness,0]) mirror([0,1,0]) tPrism(outerWallThickness,outerWallThickness,outerWallThickness);
+        translate([0,wallLength-outerWallThickness-gap,0]) mirror([0,0,0]) tPrism(outerWallThickness,outerWallThickness,outerWallThickness);
+    }
     }
     
     //clips
