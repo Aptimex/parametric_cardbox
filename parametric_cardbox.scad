@@ -403,8 +403,8 @@ module endTopClip(wallLength) {
     difference() {
         cube([outerWidth, topWidth, upperHeight+topOverlap]);
         
-        //Create taper
-        translate([outerWidth,topWidth,0]) rotate([0,0,180]) tPrism(outerWidth,topWidth,topOverlap+upperHeight);
+        //Create taper (overextend to avoid ghost walls)
+        translate([outerWidth+1,topWidth,0]) rotate([0,0,180]) tPrism(outerWidth+2,topWidth,topOverlap+upperHeight);
         
         //Add clip hole
         translate([(outerWidth-clipWidth-.5)/2, clipShelf, topOverlap+upperHeight+.5-25]) uClipHole();
