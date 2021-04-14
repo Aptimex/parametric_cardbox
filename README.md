@@ -55,4 +55,6 @@ If possible, please include a link to a picture of the printed preset (with card
 #### Other
 All included fonts are distributed under licenses that allow for free personal and commercial use.
 
+I'm not including the font for the pictured Dominion logo because I don't have permission from RGG to distribute it, but you can grab it here after creating a free account: https://boardgamegeek.com/filepage/73273/dominion-card-icons-vector-images
+
 This is available on Thingiverse here: https://www.thingiverse.com/thing:4720741
