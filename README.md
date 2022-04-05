@@ -1,5 +1,7 @@
 **Currently the Thingiverse Customizer is throwing a generic "Parser error in [last line]: syntax error Can't parse file ..." error, even after I remove all the custom font imports (and references). Until I (or someone else) can figure out why you'll have to use OpenSCAD 2019.05 (https://www.openscad.org/downloads.html) to customize this.**
 
+**Update 3/8/22:** Added box and lid STLs for **sleeved cards** in Alchemy, Dark Ages, Empires, Intrigue, Menagerie, Nocturne, Prosperity, and Renaissance thanks to card info provided by MikRED97. Also added Big Box Base box thanks to card info from MTNBW. **I have not personally verified any of these details or printed these boxes, so double-check that they look right before you print them.** Also updated the customizer file with these presets.
+
 Based on play0r's really nice dominion box designs (https://www.thingiverse.com/thing:4696563). I love the look, but found a few areas for improvement after printing one:
 - The lid slides off very easily and doesn't lock into place, so it's not very good for transport
 - There's a fair amount of internal geometry that can be removed to reduce plastic and print time
@@ -41,18 +43,27 @@ Inspired by that design, I made a similar design with the following improvements
 #### Customization notes:
 I tried to thoroughly test a wide range of reasonable input values, but you should double check that the output STL is what you expect before printing. Generate a test print with the largest and smallest card slot you'll need and make sure you like the card fit before printing a complete box.
 
-This currently includes presets for the following card sets, using the card cost as a label prefix:
+This currently includes presets for the following sleeved card sets, using the card cost as a label prefix:
 - Dominion 2e base cards
 - Dominion 2e kingdom cards
 - Dominion Base Card set (which includes Platinum, Potion, and Colony additions)
+- Dominion Big Box base cards
+- Alchemy
+- Dark Ages (full set and split into 2)
+- Empires (full set and split into 2)
+- Intrigue (full set and split into 2)
+- Menagerie (full set and split into 2)
+- Nocturne (full set and split into 2)
+- Prosperity
+- Renaissance (full set and split into 2)
+- Seaside (full set and split into 2)
 
 NOTE: These presets assume the cards are sleeved with Mayday standard clear sleeves (0.04mm thick material) since that's what I use. Modify or remove the sleeveThickness value to match your cards.
-
-I will add more Dominion presets in the future. If you would like to submit presets for other card sets please open a pull request on GitHub (with the modified json preset file) and I'll update the Thingiverse files after reviewing and merging it: https://github.com/Aptimex/parametric_cardbox
-If possible, please include a link to a picture of the printed preset (with cards inserted) either as a Make or externally to verify that the preset is functional in practice and not just theory.
 
 
 #### Other
 All included fonts are distributed under licenses that allow for free personal and commercial use.
+
+I'm not including the font for the pictured Dominion logo because I don't have permission from RGG to distribute it, but you can grab it here after creating a free account: https://boardgamegeek.com/filepage/73273/dominion-card-icons-vector-images
 
 This is available on Thingiverse here: https://www.thingiverse.com/thing:4720741

@@ -118,7 +118,7 @@ bottomCfrX = (bottomChamferX <= slotSpacerDepth) ? bottomChamferX : slotSpacerDe
 makeBox = 1; // [0:No, 1:Yes]
 //Make embossed lebels for each slot
 makeSideLabels = 1; // [0:No, 1:Yes]
-//Emboss a circle in the prefix location and emboss the prefix text within it
+//Emboss a circle in the prefix location and deboss the prefix text within it
 prefixInset = 0; // [0:No, 1:Yes]
 //Generate the lid shelf; turn off if you don't need a lid and want JUST the organizer box
 makeLidSupport = 1; // [0:No, 1:Yes]
@@ -458,7 +458,7 @@ module lid(wallLength, title="") {
         translate([0,wallLength-outerWallThickness-gap,0]) mirror([0,0,0]) tPrism(outerWallThickness,outerWallThickness,outerWallThickness);
     }
     
-    translate([outerWidth-outerWallThickness,topWidth+gap,gap]) difference() { 
+    translate([outerWidth-outerWallThickness,topWidth+gap,gap]) difference() {
         cube([outerWallThickness, wallLength-(gap*2), upperHeight+lidThickness-gap]);
         
         translate([0,outerWallThickness,0]) mirror([0,1,0]) tPrism(outerWallThickness,outerWallThickness,outerWallThickness);
